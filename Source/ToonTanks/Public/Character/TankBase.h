@@ -8,6 +8,8 @@
 
 
 class UCapsuleComponent;
+class ATankProjectile;
+class UHealthComponent;
 
 UCLASS(Abstract)
 class TOONTANKS_API ATankBase : public APawn
@@ -21,10 +23,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	virtual void BeginPlay() override;
+
+	virtual void Move(float Value);
+	virtual void Turn(float Value);
+	virtual void Fire();
+
+	bool IsAlive() const;
+
+	virtual void HandleDestruction();
 
 protected:
-
-	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCapsuleComponent> Capsule;
@@ -38,6 +48,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> ProjectileSpawnPoint;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UHealthComponent> Health;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float Speed = 400.f;
+	float Speed = 200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float TurnRate = 45.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float TurretRotateSpeed = 20.f;
+
+	UFUNCTION(BlueprintCallable)
+	void RotateTurret(FVector LookAtTarget, float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
+	TSubclassOf<ATankProjectile> ProjectileClass;
+	
 };

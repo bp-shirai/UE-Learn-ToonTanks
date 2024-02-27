@@ -5,9 +5,27 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
+#include "Character/TankBase.h"
+
 ATankPlayerController::ATankPlayerController()
 {
 	bReplicates = true;
+}
+
+void ATankPlayerController::SetPlayerEnableState(bool bPlayerEnabled)
+{
+	if (bPlayerEnabled)
+	{
+		GetPawn()->EnableInput(this);
+		DefaultMouseCursor = EMouseCursor::Crosshairs;
+	}
+	else
+	{
+		GetPawn()->DisableInput(this);
+		DefaultMouseCursor = EMouseCursor::Default;
+	}
+	
+	bShowMouseCursor = bPlayerEnabled;
 }
 
 void ATankPlayerController::BeginPlay()
@@ -24,6 +42,7 @@ void ATankPlayerController::BeginPlay()
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(false);
+	//FInputModeGameOnly InputMode;
 	SetInputMode(InputMode);
 }
 
@@ -42,6 +61,7 @@ void ATankPlayerController::SetupInputComponent()
 void ATankPlayerController::Move(const FInputActionValue& ActionValue)
 {
 	const FVector2D InputAxisVector = ActionValue.Get<FVector2D>();
+	/*
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
@@ -52,6 +72,14 @@ void ATankPlayerController::Move(const FInputActionValue& ActionValue)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+	}*/
+	if (auto Tank = GetPawn<ATankBase>())
+	{
+		if (Tank->IsAlive())
+		{
+			Tank->Move(InputAxisVector.Y);
+			Tank->Turn(InputAxisVector.X);
+		}
 	}
 }
 
@@ -61,4 +89,11 @@ void ATankPlayerController::Rotate(const FInputActionValue& ActionValue)
 
 void ATankPlayerController::Fire()
 {
+	if (auto Tank = GetPawn<ATankBase>())
+	{
+		if (Tank->IsAlive())
+		{
+			Tank->Fire();
+		}
+	}
 }

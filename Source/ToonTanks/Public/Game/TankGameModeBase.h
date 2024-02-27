@@ -6,6 +6,13 @@
 #include "GameFramework/GameModeBase.h"
 #include "TankGameModeBase.generated.h"
 
+
+
+class ATank;
+class ATankBase;
+class ATower;
+class ATankPlayerController;
+
 /**
  * 
  */
@@ -14,4 +21,20 @@ class TOONTANKS_API ATankGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+
+public:
+
+	virtual void BeginPlay() override;
+
+	void ActorDied(AActor* DeadActor);
+
+	void HandleGameStart();
+
+protected:
+
+	TObjectPtr<ATank> Tank;
+	TObjectPtr<ATankPlayerController> PlayerController;
+
+	UPROPERTY(EditDefaultsOnly)
+	float StartDelay = 3.f;
 };

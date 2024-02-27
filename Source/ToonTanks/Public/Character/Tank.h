@@ -21,6 +21,10 @@ class TOONTANKS_API ATank : public ATankBase
 public:
 
 	ATank();
+	virtual void Tick(float DeltaTime) override;
+	virtual void HandleDestruction() override;
+
+	APlayerController* GetPlayerController() const { return Cast<APlayerController>(Controller); }
 
 protected:
 

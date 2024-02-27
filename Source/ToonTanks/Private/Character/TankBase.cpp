@@ -2,8 +2,10 @@
 
 
 #include "Character/TankBase.h"
+#include "Character/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Actor/TankProjectile.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -27,6 +29,8 @@ ATankBase::ATankBase()
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>("SpawnPoint");
 	ProjectileSpawnPoint->SetupAttachment(TurretMesh);
+
+	Health = CreateDefaultSubobject<UHealthComponent>("Health");
 }
 
 void ATankBase::BeginPlay()
@@ -35,9 +39,60 @@ void ATankBase::BeginPlay()
 	
 }
 
+void ATankBase::Move(float Value)
+{
+	float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+	FVector DeltaLocation = FVector::ZeroVector;
+
+	DeltaLocation.X = Value * Speed * DeltaTime;
+	AddActorLocalOffset(DeltaLocation, true);
+}
+
+void ATankBase::Turn(float Value)
+{
+	float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+	FRotator DeltaRotation = FRotator::ZeroRotator;
+
+	DeltaRotation.Yaw = Value * TurnRate * DeltaTime;
+	AddActorLocalRotation(DeltaRotation, true);
+}
+
+void ATankBase::Fire()
+{
+	FVector Location = ProjectileSpawnPoint->GetComponentLocation();
+	FRotator Rotation = ProjectileSpawnPoint->GetComponentRotation();
+
+	FTransform Transform;
+	auto Projectile = GetWorld()->SpawnActorDeferred<ATankProjectile>(ProjectileClass, Transform, this, this, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	Projectile->FinishSpawning(Transform);
+}
+
+bool ATankBase::IsAlive() const
+{
+	return IsValid(this) && Health->GetHealth() > 0.f;
+}
+
+void ATankBase::HandleDestruction()
+{
+}
+
+void ATankBase::RotateTurret(FVector LookAtTarget, float DeltaTime)
+{
+	FVector ToTarget = LookAtTarget - TurretMesh->GetComponentLocation();
+	FRotator LookAtRotation = ToTarget.Rotation();
+	LookAtRotation.Pitch = 0.f;
+	LookAtRotation.Roll = 0.f;
+
+	FRotator CurrentRotation = TurretMesh->GetComponentRotation();
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaTime, TurretRotateSpeed);
+	TurretMesh->SetWorldRotation(NewRotation);
+}
+
 void ATankBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
 
 }
 

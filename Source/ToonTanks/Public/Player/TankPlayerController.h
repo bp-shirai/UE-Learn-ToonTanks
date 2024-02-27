@@ -24,6 +24,8 @@ public:
 
 	ATankPlayerController();
 
+	void SetPlayerEnableState(bool bPlayerEnabled);
+
 protected:
 
 	virtual void BeginPlay() override;
