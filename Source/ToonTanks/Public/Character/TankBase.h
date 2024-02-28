@@ -10,6 +10,11 @@
 class UCapsuleComponent;
 class ATankProjectile;
 class UHealthComponent;
+class UParticleSystem;
+class USoundBase;
+class UCameraShakeBase;
+class UCharacterMovementComponent;
+
 
 UCLASS(Abstract)
 class TOONTANKS_API ATankBase : public APawn
@@ -51,6 +56,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UHealthComponent> Health;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCharacterMovementComponent> CharacterMovement;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
 	float Speed = 200.f;
 
@@ -66,4 +74,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
 	TSubclassOf<ATankProjectile> ProjectileClass;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
+	float FireRate = 2.f;
+
+	bool bCanFire = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
+	TObjectPtr<UParticleSystem> DeathFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
+	TObjectPtr<USoundBase> DeathSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
+	TObjectPtr<USoundBase> FireSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults")
+	TSubclassOf<UCameraShakeBase> DeathCameraShakeClass;
 };

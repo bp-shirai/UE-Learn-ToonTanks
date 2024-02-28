@@ -6,25 +6,20 @@
 #include "EnhancedInputComponent.h"
 
 #include "Character/TankBase.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 ATankPlayerController::ATankPlayerController()
 {
 	bReplicates = true;
+
+	bShowMouseCursor = true;
+	DefaultMouseCursor = EMouseCursor::Crosshairs;
 }
 
 void ATankPlayerController::SetPlayerEnableState(bool bPlayerEnabled)
 {
-	if (bPlayerEnabled)
-	{
-		GetPawn()->EnableInput(this);
-		DefaultMouseCursor = EMouseCursor::Crosshairs;
-	}
-	else
-	{
-		GetPawn()->DisableInput(this);
-		DefaultMouseCursor = EMouseCursor::Default;
-	}
 	
+	bInputEnable = bPlayerEnabled;
 	bShowMouseCursor = bPlayerEnabled;
 }
 
@@ -36,14 +31,14 @@ void ATankPlayerController::BeginPlay()
 	check(Subsystem);
 	Subsystem->AddMappingContext(DefaultMappingContext, 0);
 
-	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::Default;
-
+	
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(false);
-	//FInputModeGameOnly InputMode;
 	SetInputMode(InputMode);
+	
+
+	//SetPlayerEnableState(false);
 }
 
 void ATankPlayerController::SetupInputComponent()
@@ -52,14 +47,15 @@ void ATankPlayerController::SetupInputComponent()
 
 	auto EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
 	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
-	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Rotate);
-	EIC->BindAction(MoveAction, ETriggerEvent::Started , this, &ThisClass::Fire);
+	EIC->BindAction(RotateAction, ETriggerEvent::Triggered, this, &ThisClass::Rotate);
+	EIC->BindAction(FireAction, ETriggerEvent::Started , this, &ThisClass::Fire);
 
 
 }
 
 void ATankPlayerController::Move(const FInputActionValue& ActionValue)
 {
+	if (!bInputEnable) return;
 	const FVector2D InputAxisVector = ActionValue.Get<FVector2D>();
 	/*
 	const FRotator Rotation = GetControlRotation();
@@ -89,6 +85,7 @@ void ATankPlayerController::Rotate(const FInputActionValue& ActionValue)
 
 void ATankPlayerController::Fire()
 {
+	if (!bInputEnable) return;
 	if (auto Tank = GetPawn<ATankBase>())
 	{
 		if (Tank->IsAlive())

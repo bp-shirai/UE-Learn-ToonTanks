@@ -6,7 +6,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Actor/TankProjectile.h"
 #include "Kismet/GameplayStatics.h"
-
+//#include "Particles/ParticleSystem.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ATankBase::ATankBase()
@@ -14,16 +15,16 @@ ATankBase::ATankBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>("CapsuleCollider");
-	SetRootComponent(Capsule);
+	RootComponent = Capsule;
 	Capsule->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");
-	BaseMesh->SetupAttachment(Capsule);
+	BaseMesh->SetupAttachment(RootComponent);
 	BaseMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BaseMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>("TurretMesh");
-	TurretMesh->SetupAttachment(Capsule);
+	TurretMesh->SetupAttachment(RootComponent);
 	TurretMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TurretMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
@@ -31,6 +32,9 @@ ATankBase::ATankBase()
 	ProjectileSpawnPoint->SetupAttachment(TurretMesh);
 
 	Health = CreateDefaultSubobject<UHealthComponent>("Health");
+
+	//CharacterMovement = CreateDefaultSubobject<UCharacterMovementComponent>("CharacterMovement");
+	//CharacterMovement->UpdatedComponent = RootComponent;
 }
 
 void ATankBase::BeginPlay()
@@ -46,6 +50,8 @@ void ATankBase::Move(float Value)
 
 	DeltaLocation.X = Value * Speed * DeltaTime;
 	AddActorLocalOffset(DeltaLocation, true);
+	//FVector ForwardDirection = GetActorForwardVector();
+	//AddMovementInput(ForwardDirection, Value);
 }
 
 void ATankBase::Turn(float Value)
@@ -55,16 +61,31 @@ void ATankBase::Turn(float Value)
 
 	DeltaRotation.Yaw = Value * TurnRate * DeltaTime;
 	AddActorLocalRotation(DeltaRotation, true);
+	//FVector RightDirection = GetActorRightVector();
+	//AddMovementInput(RightDirection, Value);
 }
 
 void ATankBase::Fire()
 {
-	FVector Location = ProjectileSpawnPoint->GetComponentLocation();
-	FRotator Rotation = ProjectileSpawnPoint->GetComponentRotation();
+	if (bCanFire)
+	{
+		bCanFire = false;
+		FVector Location = ProjectileSpawnPoint->GetComponentLocation();
+		FRotator Rotation = ProjectileSpawnPoint->GetComponentRotation();
 
-	FTransform Transform;
-	auto Projectile = GetWorld()->SpawnActorDeferred<ATankProjectile>(ProjectileClass, Transform, this, this, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-	Projectile->FinishSpawning(Transform);
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.Instigator = this;
+
+		GetWorld()->SpawnActor<ATankProjectile>(ProjectileClass, Location, Rotation, Params);
+		//Projectile->SetOwner(this);
+		//Projectile->SetInstigator(this);
+
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(Handle, [this] {bCanFire = true; }, FireRate, false);
+
+		if (FireSound) UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
 }
 
 bool ATankBase::IsAlive() const
@@ -74,6 +95,9 @@ bool ATankBase::IsAlive() const
 
 void ATankBase::HandleDestruction()
 {
+	if (DeathFX)UGameplayStatics::SpawnEmitterAtLocation(this, DeathFX, GetActorLocation(), GetActorRotation(), true, EPSCPoolMethod::AutoRelease);
+	if (DeathSound) UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+	if (DeathCameraShakeClass) GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(DeathCameraShakeClass);
 }
 
 void ATankBase::RotateTurret(FVector LookAtTarget, float DeltaTime)

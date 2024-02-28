@@ -16,6 +16,11 @@ ATank::ATank()
 	Camera->SetupAttachment(SpringArm);
 }
 
+void ATank::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

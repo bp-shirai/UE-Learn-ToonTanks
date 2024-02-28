@@ -21,6 +21,7 @@ class TOONTANKS_API ATank : public ATankBase
 public:
 
 	ATank();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void HandleDestruction() override;
 

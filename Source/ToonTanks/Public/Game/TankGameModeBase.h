@@ -30,11 +30,26 @@ public:
 
 	void HandleGameStart();
 
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartGame();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void GameOver(bool bWonGame);
+
 protected:
 
+
 	TObjectPtr<ATank> Tank;
+
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<ATankPlayerController> PlayerController;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float StartDelay = 3.f;
+
+	int32 TargetTowers = 0;
+
+	int32 GetTargetTowerCount() const;
 };

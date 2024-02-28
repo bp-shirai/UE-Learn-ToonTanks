@@ -34,8 +34,9 @@ public:
 
 	FTimerHandle FireRateTimerHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Defaults")
-	float FireRate = 2.f;
+
+
+
 
 	void CheckFireCondition(float DeltaTime);
 

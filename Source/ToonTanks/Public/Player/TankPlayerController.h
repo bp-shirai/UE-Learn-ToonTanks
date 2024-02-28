@@ -47,4 +47,6 @@ protected:
 	void Move(const FInputActionValue& ActionValue);
 	void Rotate(const FInputActionValue& ActionValue);
 	void Fire();
+
+	bool bInputEnable = true;
 };
